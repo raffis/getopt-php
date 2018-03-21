@@ -38,10 +38,23 @@ class Arguments
      */
     public function process(GetOpt $getopt, callable $setOption, callable $setCommand, callable $addOperand)
     {
-        while (($arg = array_shift($this->arguments)) !== null) {
+        $arguments = $this->arguments;
+        $string = implode(' ', $arguments);
+
+        foreach($getopt->getCommands() as $cmd) {
+            $name = $cmd->getName();
+            $path = substr($string, 0, strlen($name));
+
+            if($path === $name) {
+                $arguments = array_slice($this->arguments, count(explode(' ', $path)));
+                $setCommand($cmd);
+            }
+        }
+
+        while (($arg = array_shift($arguments)) !== null) {
             if ($this->isMeta($arg)) {
                 // everything from here are operands
-                foreach ($this->arguments as $argument) {
+                foreach ($arguments as $argument) {
                     $addOperand($argument);
                 }
                 break;

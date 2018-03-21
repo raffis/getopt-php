@@ -193,6 +193,8 @@ class GetOpt implements \Countable, \ArrayAccess, \IteratorAggregate
         ) {
             throw new Missing(sprintf('Operand %s is required', $operand->getName()));
         }
+
+        return $this;
     }
 
     /**
@@ -287,6 +289,39 @@ class GetOpt implements \Countable, \ArrayAccess, \IteratorAggregate
 
         return $this->command;
     }
+
+
+    /**
+     * Route command
+     *
+     * @param ContainerInterface $container
+     * @return GetOpt
+     */
+    public function routeCommand(?\Psr\Container\ContainerInterface $container=null)
+    {
+        $cmd = $this->getCommand();
+        if($cmd === null) {
+            return;
+        }
+
+        $handler = $cmd->getHandler();
+
+        if(is_string($handler)) {
+            $handler();
+        } elseif($handler instanceof Closure) {
+            $handler->call();
+        } elseif(is_array($handler) && count($handler) === 2 && $container !== null && is_string($handler[0])) {
+            $class = $container->get($handler[0]);
+            $class->{$handler[1]}();
+        } elseif(is_callable($handler)) {
+            call_user_func_array($handler, []);
+        } else {
+            throw new Exception('No valid command handler found');
+        }
+
+        return $this;
+    }
+
 
     /**
      * @return Command[]
