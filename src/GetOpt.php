@@ -295,12 +295,12 @@ class GetOpt implements \Countable, \ArrayAccess, \IteratorAggregate
      * Route command
      *
      * @param ContainerInterface $container
-     * @return GetOpt
      */
     public function routeCommand(?\Psr\Container\ContainerInterface $container=null)
     {
         $cmd = $this->getCommand();
         if($cmd === null) {
+            echo $this->getHelpText();
             return;
         }
 
@@ -315,11 +315,9 @@ class GetOpt implements \Countable, \ArrayAccess, \IteratorAggregate
             $class->{$handler[1]}();
         } elseif(is_callable($handler)) {
             call_user_func_array($handler, []);
-        } else {
-            throw new Exception('No valid command handler found');
         }
 
-        return $this;
+        return null;
     }
 
 
